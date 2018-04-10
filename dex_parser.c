@@ -7,7 +7,8 @@
 #define MSG(x...) fprintf(stderr, x)
 
 header_item * header;
-string_id_item ** string_ids;
+string_id_item * string_ids;
+string_data_item * string_data;
 map_list * maps;
 
 int header_parser(int);
@@ -37,7 +38,7 @@ int main(int argc, char *argv[]) {
 
   lseek(fd, header->string_ids_off, SEEK_SET);
   string_ids_parser(fd);
-  string_data_parser(fd);
+//  string_data_parser(fd);
 
   return 0;
 }
@@ -62,7 +63,7 @@ int map_parser(int fd)
 {
   maps = (map_list *) malloc(sizeof(map_list));
 
-  if(read(fd, &maps->size, sizeof(uint32_t)) != sizeof(uint32_t))
+  if(saferead(fd, &maps->size, sizeof(uint32_t)))
   {
     MSG("Error for reading map size!\n");
     exit(1);
@@ -70,11 +71,12 @@ int map_parser(int fd)
 
   maps->list = (map_item *) malloc(sizeof(map_item) * maps->size);
 
-  if(read(fd, maps->list, sizeof(maps->list)) != sizeof(maps->list))
+  if(saferead(fd, maps->list, sizeof(map_item) * maps->size))
   {
     MSG("Error for reading map list!\n");
     exit(1);
   }
+  printf("map_list->size : %d\n", maps->size);
 
   return 0;
 }
@@ -82,11 +84,14 @@ int map_parser(int fd)
 int string_ids_parser(int fd)
 {
   string_ids = (string_id_item *) malloc(sizeof(string_id_item) * header->string_ids_size);
-  if(read(fd, string_ids, sizeof(string_ids)) != sizeof(string_ids))
+  if(saferead(fd, string_ids, sizeof(string_id_item) * header->string_ids_size))
   {
     MSG("Error for reading string!\n");
     exit(1);
   }
+  int i;
+  for(i=0;i<20;i++)
+    printf("string[%d]\t:\t%d\n",i,string_ids[i].string_data_off);
 
   return 0;
 }
@@ -96,6 +101,7 @@ int string_data_parser(int fd)
   int i;
   for(i=0; i < header->string_ids_size; i++)
   {
+    fd = readleb(fd, &(string_data[i].utf16_size));
   }
   return 0;
 }
@@ -125,6 +131,25 @@ int header_size()
   return 0;
 }
 
+int readleb(int fd, leb* val)
+{
+  int8_t test_bit = 0x80;
+  leb * tmp = NULL;
+
+  if(saferead(fd, val, sizeof(int8_t)))
+  {
+    MSG("Error in Reading String!\n");
+  }
+
+  tmp = val;
+  
+  while(val->size | test_bit)
+  {
+
+  }
+  return 0;
+}
+
 int lebtoint(leb in)
 {
   int result;
@@ -136,4 +161,11 @@ leb inttoleb(int in)
 {
   leb result;
   return result;
+}
+
+int saferead(int fd, void * addr, size_t size)
+{
+  if(mmap(fd, addr, size) == size)
+    return 0;
+  return 1;
 }

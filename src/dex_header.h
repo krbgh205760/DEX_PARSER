@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include "leb.h"
 
 typedef struct
   header_item

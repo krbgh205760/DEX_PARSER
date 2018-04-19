@@ -68,7 +68,7 @@ typedef struct
 typedef struct
   string_data_item
 {
-  leb utf16_size;
+  uint32_t utf16_size;
   uint8_t * data;
 } string_data_item;
 

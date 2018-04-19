@@ -1,11 +1,14 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<unistd.h>
+#include<fcntl.h>
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<sys/mman.h>
 
-#define MSG(x..) fprintf(stderr, x)
+#include"dex_header.h"
+
+#define MSG(x...) fprintf(stderr, x)
 
 void header_parser(int *, header_item *);
 void map_parser(int *, header_item *);
@@ -60,5 +63,5 @@ void header_parser(int * file, header_item * header)
   memmove(header, file, 0x70);
   
   for(i=0;i<0x70;i++)
-    printf("%02x\n", *header+i);
+    printf("%02x\n", *((char *) header+i));
 }

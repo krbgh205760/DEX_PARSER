@@ -6,16 +6,19 @@
 #include<sys/types.h>
 #include<sys/mman.h>
 
-#include"dex_header.h"
+#include"dex_parser.h"
 
-#define DEBUG 1
+#define DISPLAY 0
 #define MSG(x...) fprintf(stderr, x)
 
 void show(void *, int);
 
 int header_parser(uint8_t *, header_item *);
 int map_parser(uint8_t *, map_list *, int);
-int string_id_parser(uint8_t *, string_id_item *, int);
+int string_id_parser(uint8_t *, string_item *, int);
+int string_data_parser(uint8_t *, string_item *, int);
+int string_parser(uint8_t *, string_item *, int, int);
+int readuleb(uint8_t *, uint32_t *, int);
 
 int main(int argc, char **argv)
 {
@@ -26,6 +29,7 @@ int main(int argc, char **argv)
 
   header_item header;
   map_list maps;
+  string_item * strings;
 
   if(argc != 2)
   {
@@ -57,6 +61,10 @@ int main(int argc, char **argv)
   header_parser(file, &header);
   map_parser(file, &maps, header.map_off);
 
+  strings = (string_item *) malloc(sizeof(string_item) * header.string_ids_size);
+
+  string_parser(file, strings, header.string_ids_off, header.string_ids_size); 
+
   return 0;
 }
 
@@ -74,7 +82,7 @@ int header_parser(uint8_t * file, header_item * header)
 {
   memmove(header, file, 0x70);
 
-  if(DEBUG)
+  if(DISPLAY)
     show(header, 0x70);
 
   return 0x70;
@@ -92,15 +100,101 @@ int map_parser(uint8_t * file, map_list * maps, int offset)
 
   offset += sizeof(map_item) * maps->size;
 
-  if(DEBUG)
+  if(DISPLAY)
     for(i = 0; i < maps->size; i++)
     {
-      printf("list[%d]", i);
+      printf("\nlist[%d]", i);
       show(maps->list + i,sizeof(map_item));
-      printf("\n");
     }
 
   return offset;
 }
 
-int string_id_parser(uint8_t * file, string_id_i
+int string_id_parser(uint8_t * file, string_item * string, int offset)
+{
+  memmove(string, file+offset, sizeof(uint32_t));
+  offset += sizeof(uint32_t);
+  return offset;
+}
+
+int string_data_parser(uint8_t * file, string_item * string, int offset)
+{
+  int length = 0;
+
+  length = readuleb(file, &string->utf16_size, offset);
+  length *= sizeof(uint8_t);
+  offset += length;
+
+  string->data = (uint8_t *) malloc(sizeof(uint8_t) * (string->utf16_size + 1));
+
+  memmove(string->data, file + offset, string->utf16_size + 1);
+
+  return offset;
+}
+
+int string_parser(uint8_t * file, string_item * strings, int offset, int size)
+{
+  int i, j;
+
+  for(i = 0; i < size; i++)
+  {
+    string_id_parser(file, strings + i, offset + i * sizeof(uint32_t));
+  }
+  for(i = 0; i < size; i++)
+  {
+    string_data_parser(file, strings + i, strings[i].string_data_off);
+  }
+
+  if(DISPLAY)
+  {
+    printf("string size : %d\n", size);
+    for(i = 0; i < size; i++)
+    {
+      printf("\nstring[%d].off : %d\n", i, strings[i].string_data_off);
+      printf("\nstring[%d].size : %d", i, strings[i].utf16_size + 1);
+      printf("\nstring[%d].data : ", i);
+      for(j = 0; j <= strings[i].utf16_size; j++)
+        printf("%02x  ", strings[i].data[j]);
+      printf("\n");
+    }
+  }
+
+  
+  return offset;
+}
+
+int readuleb(uint8_t * file, uint32_t * ptr, int offset)
+{
+  static int iter= 0;
+  int length = 1;
+  int8_t * tmp = file + offset;
+
+  uint32_t result = *(tmp++);
+  int cur;
+
+
+  if(result > 0x7f)
+  {
+    length++;
+    cur = *(tmp++);
+    result = (result & 0x7f) | ((cur & 0x7f) << 7);
+    if(cur > 0x7f) {
+      length++;
+      cur = *(tmp++);
+      result |= (cur & 0x7f) << 14;
+      if (cur > 0x7f) {
+        length++;
+        cur = *(tmp++);
+        result |= (cur & 0x7f) << 21;
+        if (cur > 0x7f) {
+          length++;
+          cur = *(tmp++);
+          result |= cur << 28;
+        }
+      }
+    }
+  }
+  *ptr = result;
+
+  return length;
+}

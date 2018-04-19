@@ -8,20 +8,24 @@
 
 #include"dex_header.h"
 
+#define DEBUG 1
 #define MSG(x...) fprintf(stderr, x)
 
-void header_parser(int *, header_item *);
-void map_parser(int *, header_item *);
+void show(void *, int);
+
+int header_parser(uint8_t *, header_item *);
+int map_parser(uint8_t *, map_list *, int);
+int string_id_parser(uint8_t *, string_id_item *, int);
 
 int main(int argc, char **argv)
 {
   int fd;
   int * file;
   struct stat sb;
-  off_t offset, pa_offset;
-  size_t length;
-  ssize_t s;
+  int offset;
+
   header_item header;
+  map_list maps;
 
   if(argc != 2)
   {
@@ -51,17 +55,52 @@ int main(int argc, char **argv)
   }
 
   header_parser(file, &header);
-
+  map_parser(file, &maps, header.map_off);
 
   return 0;
 }
 
-void header_parser(int * file, header_item * header)
+void show(void *ptr, int size)
 {
   int i;
+  for(i = 0; i < size; i++)
+    i%16==0 ? printf("\n%02x", *((uint8_t *) ptr + i)) :
+              printf("  %02x", *((uint8_t *) ptr + i));
 
-  memmove(header, file, 0x70);
-  
-  for(i=0;i<0x70;i++)
-    printf("%02x\n", *((char *) header+i));
+  printf("\n");
 }
+
+int header_parser(uint8_t * file, header_item * header)
+{
+  memmove(header, file, 0x70);
+
+  if(DEBUG)
+    show(header, 0x70);
+
+  return 0x70;
+}
+
+int map_parser(uint8_t * file, map_list * maps, int offset)
+{
+  int i;
+  memmove(&(maps->size), file+offset, sizeof(uint32_t));
+
+  offset += sizeof(uint32_t);
+
+  maps->list = (map_item *) malloc(sizeof(map_item) * maps->size);
+  memmove(maps->list, file+offset, sizeof(map_item) * maps->size);
+
+  offset += sizeof(map_item) * maps->size;
+
+  if(DEBUG)
+    for(i = 0; i < maps->size; i++)
+    {
+      printf("list[%d]", i);
+      show(maps->list + i,sizeof(map_item));
+      printf("\n");
+    }
+
+  return offset;
+}
+
+int string_id_parser(uint8_t * file, string_id_i

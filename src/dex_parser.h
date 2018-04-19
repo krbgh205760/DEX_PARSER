@@ -45,13 +45,7 @@ typedef struct
   uint32_t size;
   uint32_t offset;
 } map_item;
-/*
-#define TYPE_HEADER_ITEM 0x0000
-#define TYPE_STRING_ID_ITEM 0x0001
-#define TYPE_TYPE_ID_ITEM 0x0002
-#define TYPE_PROTO_ID_ITEM 0x0003
-#define TYPE_FIELD_ID_ITEM 0x0004
-*/
+
 typedef struct
   map_list
 {
@@ -60,15 +54,9 @@ typedef struct
 } map_list;
 
 typedef struct
-  string_id_item
+  string_item
 {
   uint32_t string_data_off;
-} string_id_item;
-
-typedef struct
-  string_data_item
-{
   uint32_t utf16_size;
   uint8_t * data;
-} string_data_item;
-
+} string_item;

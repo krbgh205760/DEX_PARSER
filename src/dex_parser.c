@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<unistd.h>
-#include<sts/stat.h>
+#include<sys/stat.h>
 #include<sys/types.h>
 #include<sys/mman.h>
 

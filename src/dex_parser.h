@@ -60,3 +60,9 @@ typedef struct
   uint32_t utf16_size;
   uint8_t * data;
 } string_item;
+
+typedef struct
+  type_item
+{
+  uint32_t descriptor_idx;
+} type_item;

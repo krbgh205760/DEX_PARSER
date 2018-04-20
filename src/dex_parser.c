@@ -110,28 +110,6 @@ int map_parser(uint8_t * file, map_list * maps, int offset)
   return offset;
 }
 
-int string_id_parser(uint8_t * file, string_item * string, int offset)
-{
-  memmove(string, file+offset, sizeof(uint32_t));
-  offset += sizeof(uint32_t);
-  return offset;
-}
-
-int string_data_parser(uint8_t * file, string_item * string, int offset)
-{
-  int length = 0;
-
-  length = readuleb(file, &string->utf16_size, offset);
-  length *= sizeof(uint8_t);
-  offset += length;
-
-  string->data = (uint8_t *) malloc(sizeof(uint8_t) * (string->utf16_size + 1));
-
-  memmove(string->data, file + offset, string->utf16_size + 1);
-
-  return offset;
-}
-
 int string_parser(uint8_t * file, string_item * strings, int offset, int size)
 {
   int i, j;
@@ -160,6 +138,33 @@ int string_parser(uint8_t * file, string_item * strings, int offset, int size)
   }
 
   
+  return offset;
+}
+
+int type_parser(uint8_t * file, type_item * types, int offset)
+{
+  return offset;
+}
+
+int string_id_parser(uint8_t * file, string_item * string, int offset)
+{
+  memmove(string, file+offset, sizeof(uint32_t));
+  offset += sizeof(uint32_t);
+  return offset;
+}
+
+int string_data_parser(uint8_t * file, string_item * string, int offset)
+{
+  int length = 0;
+
+  length = readuleb(file, &string->utf16_size, offset);
+  length *= sizeof(uint8_t);
+  offset += length;
+
+  string->data = (uint8_t *) malloc(sizeof(uint8_t) * (string->utf16_size + 1));
+
+  memmove(string->data, file + offset, string->utf16_size + 1);
+
   return offset;
 }
 
@@ -198,3 +203,26 @@ int readuleb(uint8_t * file, uint32_t * ptr, int offset)
 
   return length;
 }
+
+/*
+u2 dexGetUtf16FromUtf8(const char** pUtf8Ptr)
+{
+    unsigned int one, two, three;
+
+    one = *(*pUtf8Ptr)++;
+    if ((one & 0x80) != 0) {
+        two = *(*pUtf8Ptr)++;
+        if ((one & 0x20) != 0) {
+            three = *(*pUtf8Ptr)++;
+            return ((one & 0x0f) << 12) |
+                   ((two & 0x3f) << 6) |
+                   (three & 0x3f);
+        } else {
+            return ((one & 0x1f) << 6) |
+                   (two & 0x3f);
+        }
+    } else {
+        return one;
+    }
+}
+*/

@@ -19,6 +19,7 @@ int string_id_parser(uint8_t *, string_item *, int);
 int string_data_parser(uint8_t *, string_item *, int);
 int string_parser(uint8_t *, string_item *, int, int);
 int readuleb(uint8_t *, uint32_t *, int);
+int type_id_parser(uint8_t *, type_id_item *, int, int);
 
 int main(int argc, char **argv)
 {
@@ -30,6 +31,7 @@ int main(int argc, char **argv)
   header_item header;
   map_list maps;
   string_item * strings;
+  type_id_item * types;
 
   if(argc != 2)
   {
@@ -59,11 +61,12 @@ int main(int argc, char **argv)
   }
 
   header_parser(file, &header);
-  map_parser(file, &maps, header.map_off);
 
   strings = (string_item *) malloc(sizeof(string_item) * header.string_ids_size);
-
   string_parser(file, strings, header.string_ids_off, header.string_ids_size); 
+
+  types = (type_id_item *) malloc(sizeof(type_id_item) * header.type_ids_size);
+  type_id_parser(file, types, header.type_ids_off, header.type_ids_size);
 
   return 0;
 }
@@ -136,13 +139,28 @@ int string_parser(uint8_t * file, string_item * strings, int offset, int size)
       printf("\n");
     }
   }
-
   
   return offset;
 }
 
-int type_parser(uint8_t * file, type_item * types, int offset)
+int type_id_parser(uint8_t * file, type_id_item * types, int offset, int size)
 {
+  int i = 0;
+
+  for(i = 0; i < size; i++)
+  {
+    memmove(types + i, file + offset + i * sizeof(type_id_item), sizeof(type_id_item));
+  }
+ 
+  if(DISPLAY)
+  {
+    printf("type size : %d\n", size);
+    for(i = 0; i < size; i++)
+    {
+      printf("\ntype_ids[%d] : %d", i, types[i]);
+    }
+  }
+
   return offset;
 }
 

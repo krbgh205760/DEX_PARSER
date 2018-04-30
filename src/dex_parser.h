@@ -62,7 +62,7 @@ typedef struct
 } string_item;
 
 typedef struct
-  type_item
+  type_id_item
 {
   uint32_t descriptor_idx;
-} type_item;
+} type_id_item;

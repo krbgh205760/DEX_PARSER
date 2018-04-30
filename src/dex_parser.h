@@ -66,3 +66,12 @@ typedef struct
 {
   uint32_t descriptor_idx;
 } type_id_item;
+
+typedef struct
+  proto_id_item
+{
+  uint32_t shorty_idx;
+  uint32_t return_type_idx;
+  uint32_t parameters_off;
+} proto_id_item;
+

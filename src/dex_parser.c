@@ -20,6 +20,7 @@ int string_data_parser(uint8_t *, string_item *, int);
 int string_parser(uint8_t *, string_item *, int, int);
 int readuleb(uint8_t *, uint32_t *, int);
 int type_id_parser(uint8_t *, type_id_item *, int, int);
+int proto_id_parser(uint8_t *, proto_id_item *, int, int);
 
 int main(int argc, char **argv)
 {
@@ -31,7 +32,8 @@ int main(int argc, char **argv)
   header_item header;
   map_list maps;
   string_item * strings;
-  type_id_item * types;
+  type_id_item * type_ids;
+  proto_id_item * proto_ids;
 
   if(argc != 2)
   {
@@ -65,8 +67,11 @@ int main(int argc, char **argv)
   strings = (string_item *) malloc(sizeof(string_item) * header.string_ids_size);
   string_parser(file, strings, header.string_ids_off, header.string_ids_size); 
 
-  types = (type_id_item *) malloc(sizeof(type_id_item) * header.type_ids_size);
-  type_id_parser(file, types, header.type_ids_off, header.type_ids_size);
+  type_ids = (type_id_item *) malloc(sizeof(type_id_item) * header.type_ids_size);
+  type_id_parser(file, type_ids, header.type_ids_off, header.type_ids_size);
+
+  proto_ids = (proto_id_item *) malloc(sizeof(proto_id_item) * header.proto_ids_size);
+  proto_id_parser(file, proto_ids, header.proto_ids_off, header.proto_ids_size);
 
   return 0;
 }
@@ -159,6 +164,28 @@ int type_id_parser(uint8_t * file, type_id_item * types, int offset, int size)
     {
       printf("\ntype_ids[%d] : %d", i, types[i]);
     }
+  }
+
+  return offset;
+}
+
+int proto_id_parser(uint8_t * file, proto_id_item * proto_ids, int offset, int size)
+{
+  int i = 0;
+
+  for(i = 0; i < size; i++)
+  {
+    memmove(proto_ids + i, file + offset + i * sizeof(proto_id_item), sizeof(proto_id_item));
+  }
+ 
+  //if(DISPLAY)
+  {
+    printf("proto_ids_size : %d\n", size);
+    for(i = 0; i < size; i++)
+    {
+      printf("\nproto_ids[%d] : %d", i, proto_ids[i].shorty_idx);
+    }
+    printf("\n");
   }
 
   return offset;

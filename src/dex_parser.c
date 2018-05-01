@@ -178,7 +178,7 @@ int proto_id_parser(uint8_t * file, proto_id_item * proto_ids, int offset, int s
     memmove(proto_ids + i, file + offset + i * sizeof(proto_id_item), sizeof(proto_id_item));
   }
  
-  //if(DISPLAY)
+  if(DISPLAY)
   {
     printf("proto_ids_size : %d\n", size);
     for(i = 0; i < size; i++)

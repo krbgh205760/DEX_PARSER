@@ -75,3 +75,11 @@ typedef struct
   uint32_t parameters_off;
 } proto_id_item;
 
+typedef struct
+  field_id_item
+{
+  uint32_t class_idx;
+  uint16_t type_idx;
+  uint32_t name_idx;
+} field_id_item;
+

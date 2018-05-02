@@ -21,6 +21,7 @@ int string_parser(uint8_t *, string_item *, int, int);
 int readuleb(uint8_t *, uint32_t *, int);
 int type_id_parser(uint8_t *, type_id_item *, int, int);
 int proto_id_parser(uint8_t *, proto_id_item *, int, int);
+int field_id_parser(uint8_t *, field_id_item *, int, int);
 
 int main(int argc, char **argv)
 {
